@@ -1,0 +1,7 @@
+.venv/
+data/
+__pycache__/
+.ipynb_checkpoints/
+submission_package/
+OGBN_Arxiv_Coursework_Submission.zip
+.streamlit/

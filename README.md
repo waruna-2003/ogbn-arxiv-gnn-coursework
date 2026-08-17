@@ -74,7 +74,7 @@ accuracy and macro F1 while training substantially faster than GAT and the Graph
 | Dilshan Kodithuwakku | Graph preparation and GCN | Task 03 and GCN implementation |
 | Pramudi Biyonika | GAT and controlled model training | GAT and Task 05 |
 | Tharindu Kothalawala | Evaluation and explainability | Tasks 06–07 |
-| Waruna Silva — project owner | Dashboard, bonus models, integration and final execution | Task 08, extended work and final integration |
+| Waruna Silva | Dashboard, bonus models, integration and final execution | Task 08, extended work and final integration |
 
 The individual contributions and pull-request merges remain visible in the Git history. Future
 changes should still be made on short-lived feature branches and merged through reviewed pull

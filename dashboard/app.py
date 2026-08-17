@@ -1,13 +1,7 @@
-"""
-Graph Intelligence Dashboard — OGBN-Arxiv Node Classification
-CCS4354 Tensors and Graphs — Coursework Task 08
+"""Streamlit dashboard for the OGBN-Arxiv coursework results.
 
-Run with:  streamlit run app.py
-Expects a folder called `artifacts/` (produced by Section 8 of the coursework
-notebook) to sit next to this file. This dashboard only ever displays real experimental
-output from that notebook — there is no synthetic/demo fallback. If the required artifact
-files are missing, the app shows exactly which ones are needed and stops, rather than
-silently rendering fabricated numbers.
+The adjacent ``artifacts`` directory contains outputs exported by the notebook.
+Required files are validated before the interface loads.
 """
 
 import json
@@ -22,9 +16,6 @@ import streamlit as st
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARTIFACT_DIR = os.path.join(BASE_DIR, "artifacts")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE CONFIG
-# ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Graph Intelligence Dashboard | OGBN-Arxiv",
     page_icon="🧠",
@@ -32,16 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# NOTE: there is no hard-coded class-name list here on purpose. Guessing at a plausible-looking
-# "cs.AI, cs.LG, ..." list risks silently mislabelling every prediction in this dashboard, since
-# OGBN-Arxiv's 40 class indices don't follow alphabetical order. The real names are loaded from
-# `class_names.json` (exported by the notebook's Section 8.1b directly from OGB's own official
-# mapping file) inside load_artifacts() below. If that file isn't available, every class is shown
-# honestly as "Class 0", "Class 1", etc. rather than a fabricated subject code.
-
-# ─────────────────────────────────────────────────────────────────────────────
-# THEME — CSS (glassmorphism, gradients, animated elements)
-# ─────────────────────────────────────────────────────────────────────────────
+# Class indices are not alphabetical; use the official mapping when available.
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -63,7 +45,6 @@ html, body, [class*="css"]  {
     color: var(--text-main);
 }
 
-/* ── Animated gradient background ─────────────────────────────────────── */
 .stApp {
     background: radial-gradient(circle at 15% 10%, rgba(124,92,255,0.20), transparent 45%),
                 radial-gradient(circle at 85% 0%, rgba(34,211,238,0.16), transparent 40%),
@@ -78,7 +59,6 @@ html, body, [class*="css"]  {
     100% { background-position: 0% 0%; }
 }
 
-/* ── Hero header ──────────────────────────────────────────────────────── */
 .hero {
     padding: 2.1rem 2.4rem;
     border-radius: 22px;
@@ -126,7 +106,6 @@ html, body, [class*="css"]  {
        box-shadow: 0 0 8px var(--accent-green); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-/* ── Glass panels / metric cards ─────────────────────────────────────── */
 .glass {
     background: var(--bg-panel);
     border: 1px solid var(--border);
@@ -160,13 +139,11 @@ html, body, [class*="css"]  {
 .section-title .bar { width: 5px; height: 22px; border-radius: 4px;
     background: linear-gradient(180deg, var(--accent1), var(--accent2)); display: inline-block; }
 
-/* ── Sidebar ──────────────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(12,14,28,0.96), rgba(6,8,18,0.98));
     border-right: 1px solid var(--border);
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] { gap: 6px; }
 .stTabs [data-baseweb="tab"] {
     background: rgba(255,255,255,0.04); border-radius: 10px 10px 0 0; padding: 0.55rem 1.1rem;
@@ -177,7 +154,6 @@ section[data-testid="stSidebar"] {
     color: #fff;
 }
 
-/* progress bar shimmer for confidence bars */
 .conf-bar-track { width: 100%; background: rgba(255,255,255,0.06); border-radius: 999px; height: 10px; overflow: hidden; }
 .conf-bar-fill { height: 100%; border-radius: 999px;
     background: linear-gradient(90deg, var(--accent1), var(--accent2));
@@ -186,7 +162,6 @@ section[data-testid="stSidebar"] {
 
 footer, #MainMenu { visibility: hidden; }
 
-/* ── Native st.container(border=True) cards — reskinned to match the glass aesthetic ───── */
 div[data-testid="stVerticalBlockBorderWrapper"] {
     background: var(--bg-panel) !important;
     border: 1px solid var(--border) !important;
@@ -202,7 +177,6 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# Readability overrides: calm, high-contrast layout with no decorative motion.
 st.markdown("""
 <style>
 :root {
@@ -258,11 +232,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 """, unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DATA LOADING — real notebook artifacts only, no synthetic fallback.
-# ─────────────────────────────────────────────────────────────────────────────
-# Files the notebook (Section 8) must export for this dashboard to show anything. If any of
-# these are missing, we stop with a clear message instead of ever rendering fabricated numbers.
+# Required notebook exports.
 REQUIRED_ARTIFACTS = {
     "graph_stats.json": "graph statistics",
     "model_metrics.json": "model performance metrics (accuracy/precision/recall/F1)",
@@ -285,9 +255,7 @@ def load_artifacts():
     with open(path("graph_stats.json")) as f:
         art["graph_stats"] = json.load(f)
 
-    # Real official class names (see notebook Section 8.1b). If the file is missing OR contains
-    # `null` (the notebook couldn't locate OGB's mapping file on disk), fall back HONESTLY to
-    # generic "Class N" labels instead of guessing at plausible-looking subject codes.
+    # A missing mapping uses neutral labels rather than guessed subject names.
     num_classes = art["graph_stats"]["num_classes"]
     class_names_loaded = None
     if os.path.exists(path("class_names.json")):
@@ -308,18 +276,12 @@ def load_artifacts():
     art["gcn_log"] = pd.read_csv(path("gcn_training_log.csv"))
     art["gat_log"] = pd.read_csv(path("gat_training_log.csv"))
 
-    # Neighbourhood influence (notebook Section 7.3) — optional extra, but if present it must be
-    # the real influence_df export, never a randomly generated stand-in.
     infl_path = path("neighbourhood_influence.csv")
     art["neighbourhood_influence"] = pd.read_csv(infl_path) if os.path.exists(infl_path) else None
 
-    # Per-neighbour attention weights (notebook Section 7.2) — optional numeric companion to the
-    # attention_weights.png chart.
     attn_csv_path = path("attention_weights.csv")
     art["attention_table"] = pd.read_csv(attn_csv_path) if os.path.exists(attn_csv_path) else None
 
-    # Global attention-quality check (notebook Section 7.2b) — top-attention edges vs. a random
-    # baseline, same-class rate. Optional quantitative backing for the attention explanation.
     attn_quality_path = path("attention_quality_summary.json")
     if os.path.exists(attn_quality_path):
         with open(attn_quality_path) as f:
@@ -327,8 +289,6 @@ def load_artifacts():
     else:
         art["attention_quality"] = None
 
-    # Bonus — self-supervised pre-training summary (notebook "Additional-SSL" section). Optional:
-    # only present if that bonus experiment was run.
     ssl_path = path("ssl_pretraining_summary.json")
     if os.path.exists(ssl_path):
         with open(ssl_path) as f:
@@ -357,13 +317,10 @@ mm = data["model_metrics"]
 CLASS_NAMES = data["class_names"]
 
 def class_name(class_id):
-    """Look up a paper's subject-area name safely, however it's stored (int, numpy int, str)."""
+    """Return the subject name for a numeric class identifier."""
     i = int(class_id)
     return CLASS_NAMES[i] if 0 <= i < len(CLASS_NAMES) else f"Class {i}"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# HERO HEADER
-# ─────────────────────────────────────────────────────────────────────────────
 live_badge = '<span class="badge"><span class="dot"></span> Verified notebook results</span>'
 class_name_badge = ('<span class="badge">Official arXiv class names</span>' if data.get("class_names_are_real")
                      else '<span class="badge">Generic class labels</span>')
@@ -395,9 +352,7 @@ with st.container(border=True):
         "1. Overview  \n2. Models  \n3. Predictions  \n4. Explanations"
     )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SIDEBAR
-# ─────────────────────────────────────────────────────────────────────────────
+# Sidebar
 with st.sidebar:
     st.markdown("### View settings")
     split_choice = st.selectbox(
@@ -422,15 +377,11 @@ with st.sidebar:
     with st.expander("Technical data source"):
         st.code(ARTIFACT_DIR, language=None)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TABS
-# ─────────────────────────────────────────────────────────────────────────────
 tab_overview, tab_perf, tab_predict, tab_embed, tab_explain, tab_bonus, tab_live = st.tabs(
     ["1  Overview", "2  Models", "3  Predictions", "4  Embeddings",
      "5  Explanations", "6  Extra work", "7  Live test"]
 )
 
-# ── consistent metric helper ──
 def metric_card(label, value, delta=None, delta_positive=True, col=None):
     target = col or st
     target.metric(
@@ -442,9 +393,7 @@ def metric_card(label, value, delta=None, delta_positive=True, col=None):
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 1 — GRAPH OVERVIEW
-# ─────────────────────────────────────────────────────────────────────────────
+# Graph overview
 with tab_overview:
     st.markdown('<div class="section-title"><span class="bar"></span>Graph Statistics</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
@@ -480,11 +429,7 @@ with tab_overview:
     colA, colB = st.columns([1.1, 1])
     colA.plotly_chart(fig_split, width="stretch")
     with colB:
-        # NOTE: st.markdown('<div class="glass">...') followed by native widgets (st.write, etc.)
-        # and a separate closing '</div>' does NOT nest those widgets inside the div — Streamlit
-        # renders every call as its own independent DOM node, so the div opens and closes empty
-        # (an empty rounded box) while the real content floats outside it, unstyled. st.container
-        # is the correct way to group native widgets inside one visually bordered card.
+        # Native containers keep widgets inside the visible card.
         with st.container(border=True):
             st.markdown("##### 🧭 About the split")
             st.write(
@@ -518,9 +463,7 @@ with tab_overview:
         else:
             st.info("Run the notebook to generate the connected components chart.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 2 — MODEL PERFORMANCE
-# ─────────────────────────────────────────────────────────────────────────────
+# Model performance
 with tab_perf:
     st.markdown('<div class="section-title"><span class="bar"></span>Head-to-Head Metrics</div>', unsafe_allow_html=True)
 
@@ -563,8 +506,7 @@ with tab_perf:
         "with different frequencies."
     )
 
-    # Best-model KPI and full interpretation, always computed from the TEST split — the standard
-    # basis for reporting a final result, independent of whichever split is toggled above.
+    # Keep the headline result fixed to the test split.
     gcn_test, gat_test = mm["GCN"]["test"], mm["GAT"]["test"]
     test_keys = ["accuracy", "precision", "recall", "f1"]
     gcn_wins = sum(1 for k in test_keys if gcn_test[k] >= gat_test[k])
@@ -632,9 +574,7 @@ with tab_perf:
             else:
                 st.info("Run the notebook to generate training_curves.png.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 3 — NODE CLASSIFICATION RESULTS
-# ─────────────────────────────────────────────────────────────────────────────
+# Predictions
 with tab_predict:
     st.markdown('<div class="section-title"><span class="bar"></span>Explore Predictions</div>', unsafe_allow_html=True)
     st.caption(
@@ -703,9 +643,7 @@ with tab_predict:
             </div>
             """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 4 — EMBEDDING SPACE
-# ─────────────────────────────────────────────────────────────────────────────
+# Embeddings
 with tab_embed:
     st.markdown('<div class="section-title"><span class="bar"></span>Learned Node Embeddings</div>', unsafe_allow_html=True)
     st.caption("Each point is a paper. Points that cluster together were mapped to similar representations by the GNN — colour shows the true subject area.")
@@ -744,16 +682,12 @@ with tab_embed:
     )
     st.plotly_chart(fig_emb, width="stretch")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 5 — EXPLAINABILITY
-# ─────────────────────────────────────────────────────────────────────────────
+# Explainability
 with tab_explain:
     st.markdown('<div class="section-title"><span class="bar"></span>Why did the model predict that?</div>', unsafe_allow_html=True)
 
     e1, e2 = st.columns(2)
     with e1:
-        # See the note above: st.container(border=True) is used instead of a raw HTML div so the
-        # image/caption actually render INSIDE the visible card instead of next to an empty one.
         with st.container(border=True):
             st.markdown("##### 🎯 GAT Attention Weights")
             attn_img = os.path.join(ARTIFACT_DIR, "attention_weights.png")
@@ -796,9 +730,7 @@ with tab_explain:
                 infl_view = influence_df.sort_values("prob_drop", ascending=False).head(15).copy()
                 x_col = "prob_drop" if "prob_drop" in infl_view.columns else infl_view.columns[-1]
                 raw_y_col = "removed_neighbour" if "removed_neighbour" in infl_view.columns else infl_view.columns[0]
-                # Plotly treats a numeric y-axis (raw paper IDs like 102508) as a continuous scale
-                # on a horizontal bar chart, which collapses every bar into a thin diagonal sliver
-                # instead of a proper category row. Casting to a labelled string fixes it.
+                # String labels prevent Plotly treating node IDs as a continuous axis.
                 infl_view["neighbour_label"] = "Paper #" + infl_view[raw_y_col].astype(str)
                 if "target_node" in infl_view.columns:
                     st.caption(f"Explaining paper #{int(infl_view['target_node'].iloc[0])} "
@@ -819,9 +751,7 @@ with tab_explain:
     if os.path.exists(tsne_img):
         st.image(tsne_img, width="stretch", caption="Static export from the notebook (Section 7.1) — the Embedding Space tab above is the interactive version.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 6 — EXTENDED EXPERIMENTS (Graph Transformer + Self-Supervised Pre-training)
-# ─────────────────────────────────────────────────────────────────────────────
+# Extended experiments
 with tab_bonus:
     st.caption(
         "The two sections below are supplementary experiments that go beyond the core GCN vs GAT "
@@ -857,9 +787,6 @@ with tab_bonus:
             "isolating the effect of the pretext task from the architecture itself."
         )
 
-        # Real-data comparison table: the two primary models (from model_metrics.json, test split)
-        # plus the SSL-pretrained and from-scratch variants (from ssl_pretraining_summary.json).
-        # No fabricated numbers — every row comes straight from an exported artifact.
         compare_df = pd.DataFrame([
             {"Model": "GCN (primary)", "Test Accuracy": mm["GCN"]["test"]["accuracy"], "Test Macro F1": mm["GCN"]["test"]["f1"]},
             {"Model": "GAT (primary)", "Test Accuracy": mm["GAT"]["test"]["accuracy"], "Test Macro F1": mm["GAT"]["test"]["f1"]},
@@ -896,15 +823,7 @@ with tab_bonus:
     else:
         st.info("Run the notebook's self-supervised pre-training section to generate `ssl_pretraining_summary.json`.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB 7 — LIVE PREDICTION
-# ─────────────────────────────────────────────────────────────────────────────
-# Genuine forward pass through the trained gcn_model.pt / gat_model.pt weights — not a
-# re-display of predictions_sample.csv. This needs two things the rest of the dashboard
-# doesn't: (1) PyTorch + PyTorch Geometric installed, and (2) the full graph (node features +
-# edge_index) exported from the notebook, since GCN/GAT need a node's neighbourhood to predict,
-# not just the node itself. If either is missing, we say exactly what's missing — same honesty
-# policy as the rest of this file — rather than faking a prediction.
+# Live inference requires PyTorch Geometric, node features and the full edge index.
 LIVE_REQUIRED = {
     "node_features.pt": "all node feature vectors (data.x), shape [num_nodes, 128]",
     "edge_index.pt": "the full citation graph edge_index, shape [2, num_edges]",
@@ -965,11 +884,7 @@ with tab_live:
         )
         st.caption(f"Missing: {', '.join(missing_graph_files)}")
     else:
-        # ── exact architectures reverse-engineered from the state_dict shapes in gcn_model.pt /
-        # gat_model.pt (128 in -> 256 hidden -> 40 classes for both; GCN has BatchNorm after the
-        # first two conv layers, GAT uses 8 attention heads on the first two layers and 1 head,
-        # no concat, on the final layer). Loaded with strict=True below, so any mismatch surfaces
-        # immediately as an error instead of silently loading wrong/partial weights.
+        # These definitions must match the saved state dictionaries exactly.
         class GCN(nn.Module):
             def __init__(self, in_dim=128, hidden=256, out_dim=40, dropout=0.5):
                 super().__init__()

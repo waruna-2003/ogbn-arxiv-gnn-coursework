@@ -1,7 +1,6 @@
 # Dashboard Screenshot Checklist
 
-Task 08 requires a working Streamlit dashboard **and screenshots**. Save the final captures here so
-they remain separate from notebook-generated files in `dashboard/artifacts/`.
+Save the Task 08 dashboard captures here, separate from `dashboard/artifacts/`.
 
 Use these filenames:
 
@@ -18,6 +17,5 @@ Before capturing, run from the project root:
 .\.venv\Scripts\python.exe -m streamlit run dashboard\app.py
 ```
 
-Use a wide browser window, keep the sidebar collapsed unless it adds useful context, and make sure
-the page title, selected tab, values, charts, and success message are readable. Avoid including
-unrelated browser tabs, notifications, account details, or desktop content.
+Use a wide browser window and keep the title, selected tab, values, charts and success message
+readable. Exclude unrelated tabs, notifications, account details and desktop content.

@@ -1,0 +1,17 @@
+{
+  "num_nodes": 169343,
+  "num_edges": 1166243,
+  "message_passing_edges": 2315598,
+  "message_passing_graph": "undirected",
+  "num_features": 128,
+  "num_classes": 40,
+  "density": 4.066840277668502e-05,
+  "avg_in_degree": 6.886868476867676,
+  "avg_out_degree": 6.886868476867676,
+  "max_in_degree": 13155,
+  "num_connected_components": 1,
+  "largest_component_pct": 100.0,
+  "train_size": 90941,
+  "valid_size": 29799,
+  "test_size": 48603
+}

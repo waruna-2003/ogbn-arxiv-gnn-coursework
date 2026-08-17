@@ -1,0 +1,5 @@
+{
+  "top_k": 500,
+  "top_attention_same_class_rate": 0.598,
+  "random_baseline_same_class_rate": 0.656
+}

@@ -1,7 +1,7 @@
 # Dashboard
 
-`app.py` is the Streamlit application for Coursework Task 08. `artifacts/` contains the real
-outputs it displays.
+`app.py` is the Streamlit application for Coursework Task 08. It reads the generated files in
+`artifacts/`.
 
 Run it from the project root:
 
@@ -11,7 +11,7 @@ Run it from the project root:
 
 ## Artifacts
 
-The 24 files are grouped by purpose:
+Artifacts are grouped by purpose:
 
 - **Graph data:** `graph_stats.json`, `node_features.pt`, `edge_index.pt`,
   `class_names.json`, `sample_subgraph.png`, `degree_distribution.png`, and
@@ -31,14 +31,13 @@ The 24 files are grouped by purpose:
 - Undirected message-passing edges: **2,315,598**.
 - GCN test accuracy / macro F1: **71.71% / 0.5054**.
 - GAT test accuracy / macro F1: **70.72% / 0.4781**.
-- All JSON and CSV files, tensor dimensions, edge symmetry, saved state dictionaries, all seven
-  dashboard tabs, and a real full-graph inference were validated successfully.
+- JSON and CSV files, tensor dimensions, edge symmetry, state dictionaries, dashboard tabs and
+  full-graph inference were validated.
 
-These are generated results, not manually maintained source files. The dashboard has no synthetic
-fallback: if a required artifact is absent, it reports the missing file.
+These are generated results. If a required artifact is absent, the dashboard reports the missing
+file instead of substituting data.
 
 ## Screenshot deliverable
 
-The coursework also requires dashboard screenshots. Store the final images in `screenshots/` using
-the filenames and capture checklist documented in `screenshots/README.md`. Do not place screenshots
-inside `artifacts/`; that directory is reserved for notebook-generated data.
+Store final dashboard captures in `screenshots/` using its checklist. Keep screenshots out of
+`artifacts/`, which is reserved for notebook-generated data.
